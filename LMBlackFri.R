@@ -12,14 +12,14 @@ library(xgboost)
 train <- read.csv("./train.csv", stringsAsFactors=F)
 test <- read.csv("./test.csv", stringsAsFactors=F)
 
-
-## cleaning data
-
 # removing categories 19 and 20
 X_train <- subset(train, !Product_Category_1 %in% c(19,20))
 X_test <- test
 str(X_train)
 str(X_test)
+sapply(X_train, function(x){length(unique(x))})
+sapply(X_test, function(x){length(unique(x))})
+
 # onehot-encoding city variable
 X_train <- dummy.data.frame(X_train, names=c("City_Category"), sep="_")
 X_test <- dummy.data.frame(X_test, names=c("City_Category"), sep="_")
@@ -57,6 +57,7 @@ X_test$Gender <- ifelse(X_test$Gender == "F", 1, 0)
 
 # feature representing the count of each user
 user_count <- ddply(X_train, .(User_ID), nrow)
+names(user_count)
 names(user_count)[2] <- "User_Count"
 X_train <- merge(X_train, user_count, by="User_ID")
 X_test <- merge(X_test, user_count, all.x=T, by="User_ID")
@@ -137,7 +138,7 @@ train4lm <- train4lm[, -5]
 train4lm <- train4lm[, -10]
 colnames(train4lm)
 
-
+sapply(train4lm, function(x){sum(length(which(is.na(x))))})
 lm <- lm(Purchase ~. , data = train4lm)
 summary(lm)
 pred <- predict(lm, X_test, interval = "predict",na.action=na.pass)
